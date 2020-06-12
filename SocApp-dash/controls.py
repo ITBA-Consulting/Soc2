@@ -121,7 +121,6 @@ WELL_TYPES = dict(
 COLORS = dict(
     GD="#FFEDA0",
     GE="#FA9FB5",
-    GW="#A1D99B",
     IG="#67BD65",
     OD="#BFD3E6",
     OE="#B3DE69",
@@ -142,4 +141,6 @@ COLORS = dict(
     SG="#CCCCCC",
     TH="#EAE5D9",
     UN="#C29A84",
+    GW="#A1D99B",
+    
 )

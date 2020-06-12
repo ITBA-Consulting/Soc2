@@ -9,7 +9,7 @@ import pandas as pd
 from dash.dependencies import Input, Output, State, ClientsideFunction
 import dash_core_components as dcc
 import dash_html_components as html
-
+import random
 # Multi-dropdown options
 from controls import COUNTIES, STATUSES, WELL_TYPES, COLORS
 
@@ -177,10 +177,23 @@ app.layout = html.Div(
                         ),
                         dcc.RangeSlider(
                             id="year_slider",
-                            min=1960,
-                            max=2017,
-                            value=[1990, 2010],
+                            min=2012,
+                            max=2020,
+                            step=None,
+                            marks={
+                                2012: {'label': '2012', 'style': {'color': '#77b0b1'}},
+                                2014: '2014',
+                                2016: '2016',
+                                2018: '2018',
+                                2020: {'label': '2020', 'style': {'color': '#f50'}}
+                            },
+                            value=[2012, 2014],
                             className="dcc_control",
+
+
+
+
+
                         ),
                         html.P("Choose y-axis:", className="control_label"),
                         # dcc.RadioItems(
@@ -266,7 +279,7 @@ app.layout = html.Div(
                             className="row container-display",
                         ),
                         html.Div(
-                            [dcc.Graph(id="count_graph1"
+                            [dcc.Graph(id="count_graph"
                             
 
                                 )],
@@ -340,14 +353,14 @@ app.layout = html.Div(
 #     return mantissa + ["", "K", "M", "G", "T", "P"][magnitude]
 
 
-# def filter_dataframe(df, STATUSES, well_types, year_slider):
-#     dff = df[
-#         df["Well_Status"].isin(STATUSES)
-#         & df["Well_Type"].isin(well_types)
-#         & (df["Date_Well_Completed"] > dt.datetime(year_slider[0], 1, 1))
-#         & (df["Date_Well_Completed"] < dt.datetime(year_slider[1], 1, 1))
-#     ]
-#     return dff
+def filter_dataframe(df, year_slider):
+
+
+    dff = df[
+         (df[get_datetime_col()[0]] > dt.datetime(year_slider[0], 1, 1))
+        & (df[get_datetime_col()[0]] < dt.datetime(year_slider[1], 1, 1))
+    ]
+    return dff
 
 
 # def produce_individual(api_well_num):
@@ -457,15 +470,13 @@ app.layout = html.Div(
 #     return []
 
 
-# # Slider -> count graph
-# @app.callback(Output("year_slider", "value"), [Input("count_graph", "selectedData")])
-# def update_year_slider(count_graph_selected):
+# Slider -> count graph
+@app.callback(Output("year_slider", "value"), [Input("count_graph", "selectedData")])
+def update_year_slider(count_graph_selected):
 
-#     if count_graph_selected is None:
-#         return [1990, 2010]
+    if count_graph_selected is None:
+        return [2012, 2016]
 
-#     nums = [int(point["pointNumber"]) for point in count_graph_selected["points"]]
-#     return [min(nums) + 1960, max(nums) + 1961]
 
 
 # # Selectors -> well text
@@ -497,24 +508,31 @@ app.layout = html.Div(
 
 #Selectors -> main graph
 @app.callback(
-    Output(component_id='count_graph1', component_property='figure'),
+    Output(component_id='count_graph', component_property='figure'),
     [
         Input("xaxis-column", "value"),
         Input("yaxis-column", "value"),
         Input("year_slider", "value"),
-    ]#,
-    #[State("lock_selector", "value"), State("low_range_graph", "relayoutData")],
+    ],
+    #[#State("lock_selector", "value"), 
+    #State("low_range_graph", "relayoutData")],
 )
 def make_main_figure(
     x_col,y_col,  year_slider#, selector, low_range_graph_layout
 ):
-    layout_count_graph1 = copy.deepcopy(layout)
+    print(11)
+    dff =  filter_dataframe(df_soc,  year_slider)
+
+
     colors = []
-    for i in range(2018, 2020):
+    for i in range(2012, 2020):
         if i >= int(year_slider[0]) and i < int(year_slider[1]):
             colors.append("rgb(123, 199, 255)")
         else:
             colors.append("rgba(123, 199, 255, 0.2)")
+
+
+    layout_count_graph = copy.deepcopy(layout)
 
 
 
@@ -523,20 +541,20 @@ def make_main_figure(
             type="scatter",
             mode="markers",#lines+
             name="Gas Produced (mcf)",
-            x=df_soc[x_col],
-            y=df_soc[y_col],
+            x=dff[x_col],
+            y=dff[y_col],
             line=dict(shape="spline", smoothing=2, width=1, color="#fac1b7"),
-            marker=dict(symbol="diamond-open"),
+            #marker=dict(symbol="diamond-open"),
             #opacity=0,
             hoverinfo="skip",
-            #marker=dict(color=colors),
+            marker=dict(color=colors),
         )]
 
-    layout_count_graph1["title"] = y_col
-    layout_count_graph1["dragmode"] = "select"
-    layout_count_graph1["showlegend"] = False
-    layout_count_graph1["autosize"] = True
-    figure = dict(data=data, layout=layout_count_graph1)
+    layout_count_graph["title"] = y_col
+    layout_count_graph["dragmode"] = "select"
+    layout_count_graph["showlegend"] = False
+    layout_count_graph["autosize"] = True
+    figure = dict(data=data, layout=layout_count_graph)
     return figure
 
 
@@ -551,15 +569,18 @@ def make_main_figure(
 def make_low_range_figure(
     y_col,  year_slider#, selector, low_range_graph_layout
 ):
+
+    dff =  filter_dataframe(df_soc,  year_slider)
+
     layout_low_range_graph = copy.deepcopy(layout)
     #'Cond µS/cm', 'SpCond µS/cm', 'nLF Cond µS/cm'
     data = [ dict(
             type="scatter",
             mode="lines",#lines+
-            name="Gas Produced (mcf)",
-            x=df_soc[get_datetime_col()[0]],
-            y=df_soc[y_col[i]],
-            line=dict(shape="spline", smoothing=2, width=1, color=list(COLORS.values())[i]),
+            name=y_col[i],
+            x=dff[get_datetime_col()[0]],
+            y=dff[y_col[i]],
+            line=dict(shape="spline", smoothing=2, width=1, color=(list(COLORS.values()))[i]),
             marker=dict(symbol="diamond-open"),
             #opacity=0,
             hoverinfo="skip",
@@ -568,7 +589,7 @@ def make_low_range_figure(
             for i in range(len(y_col))]
     layout_low_range_graph["title"] = y_col
     layout_low_range_graph["dragmode"] = "select"
-    layout_low_range_graph["showlegend"] = False
+    layout_low_range_graph["showlegend"] = True
     layout_low_range_graph["autosize"] = True
     figure = dict(data=data, layout=layout_low_range_graph)
     return figure
@@ -585,15 +606,17 @@ def make_low_range_figure(
 def make_low_range_figure(
     y_col,  year_slider#, selector, low_range_graph_layout
 ):
+    dff =  filter_dataframe(df_soc,  year_slider)
+
     layout_high_range_graph = copy.deepcopy(layout)
     #'Cond µS/cm', 'SpCond µS/cm', 'nLF Cond µS/cm'
     data = [ dict(
             type="scatter",
             mode="lines",#lines+
-            name="Gas Produced (mcf)",
-            x=df_soc[get_datetime_col()[0]],
-            y=df_soc[y_col[i]],
-            line=dict(shape="spline", smoothing=2, width=1, color=list(COLORS.values())[i]),
+            name=y_col[i],
+            x=dff[get_datetime_col()[0]],
+            y=dff[y_col[i]],
+            line=dict(shape="spline", smoothing=2, width=1, color=(list(COLORS.values()))[i]),
             marker=dict(symbol="diamond-open"),
             #opacity=0,
             hoverinfo="skip",
@@ -602,8 +625,13 @@ def make_low_range_figure(
             for i in range(len(y_col))]
     layout_high_range_graph["title"] = y_col
     layout_high_range_graph["dragmode"] = "select"
-    layout_high_range_graph["showlegend"] = False
+    layout_high_range_graph["showlegend"] = True
     layout_high_range_graph["autosize"] = True
+
+    # layout_pie["title"] = "Production Summary: {} to {}".format(
+    #     year_slider[0], year_slider[1]
+
+
     figure = dict(data=data, layout=layout_high_range_graph)
     return figure
 

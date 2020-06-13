@@ -116,228 +116,309 @@ layout = dict(
 # Create app layout
 app.layout = html.Div(
     [
-        dcc.Store(id="aggregate_data"),
-        # empty Div to trigger javascript file for graph resizing
-        html.Div(id="output-clientside"),
-        html.Div(
-            [
-                html.Div(
-                    [
-                        html.Img(
-                            src=app.get_asset_url("socorro.png"),
-                            id="plotly-image",
-                            style={
-                                "height": "60px",
-                                "width": "auto",
-                                "margin-bottom": "25px",
-                            },
-                        )
-                    ],
-                    className="one-third column",
-                ),
-                html.Div(
-                    [
+    #main body
+
+
+            dcc.Tabs(
+                id="tabs-with-classes",
+                value='tab-1',
+                parent_className='custom-tabs',
+                className='custom-tabs-container',
+                children = [  # tabs
+                dcc.Tab(label='Moniroting',
+                        value='tab-1',
+                        className='custom-tab',
+                        selected_className='custom-tab--selected', 
+                        children=[
+
+
+                    dcc.Store(id="aggregate_data"),
+                    # empty Div to trigger javascript file for graph resizing
+                    html.Div(id="output-clientside"),
+                    html.Div(
+                        [
+                            html.Div(
+                                [
+                                    html.Img(
+                                        src=app.get_asset_url("socorro.png"),
+                                        id="plotly-image",
+                                        style={
+                                            "height": "60px",
+                                            "width": "auto",
+                                            "margin-bottom": "25px",
+                                        },
+                                    )
+                                ],
+                                className="one-third column",
+                            ),
+                            html.Div(
+                                [
+                                    html.Div(
+                                        [
+                                            html.H3(
+                                                "SOCORRO",
+                                                style={"margin-bottom": "0px"},
+                                            ),
+                                            html.H5(
+                                                "Seeking out corrosion, before it is too late.", style={"margin-top": "0px"}
+                                            ),
+                                        ]
+                                    )
+                                ],
+                                className="one-half column",
+                                id="title",
+                            ),
+                            html.Div(
+                                [
+                                    html.A(
+                                        html.Button("SOCORRO Home", id="learn-more-button"),
+                                        href="https://www.socorro.eu/",
+                                    )
+                                ],
+                                className="one-third column",
+                                id="button",
+                            ),
+                        ],
+                        id="header",
+                        className="row flex-display",
+                        style={"margin-bottom": "25px"},
+                    ),
+                    html.Div(
+                        [
+                            html.Div(
+                                [
+                                    html.P(
+                                        "Filter by construction date (or select range in histogram):",
+                                        className="control_label",
+                                    ),
+                                    dcc.RangeSlider(
+                                        id="year_slider",
+                                        min=2012,
+                                        max=2020,
+                                        step=None,
+                                        marks={
+                                            2012: {'label': '2012', 'style': {'color': '#77b0b1'}},
+                                            2014: '2014',
+                                            2016: '2016',
+                                            2018: '2018',
+                                            2020: {'label': '2020', 'style': {'color': '#f50'}}
+                                        },
+                                        value=[2012, 2014],
+                                        className="dcc_control",
+
+
+
+
+
+                                    ),
+                                    html.P("Choose y-axis:", className="control_label"),
+                                    # dcc.RadioItems(
+                                    #     id="well_status_selector",
+                                    #     options=[
+                                    #         {"label": "All ", "value": "all"},
+                                    #         {"label": "Active only ", "value": "active"},
+                                    #         {"label": "Customize ", "value": "custom"},
+                                    #     ],
+                                    #     value="active",
+                                    #     labelStyle={"display": "inline-block"},
+                                    #     className="dcc_control",
+                                    # ),
+                                    dcc.Dropdown(
+                                        id="xaxis-column",
+                                        options=get_options_dic(),
+                                        #multi=True,
+                                        value= get_datetime_col()[0],#list(STATUSES.keys()),
+                                        className="dcc_control",
+                                    ),
+                                    dcc.Dropdown(
+                                        id="yaxis-column",
+                                        options=get_options_dic(),
+                                        #multi=True,
+                                        value='Temp °C', #get_datetime_col()[0],#list(STATUSES.keys()),
+                                        className="dcc_control",
+                                    ),
+                                    # dcc.Checklist(
+                                    #     id="lock_selector",
+                                    #     options=[{"label": "Lock camera", "value": "locked"}],
+                                    #     className="dcc_control",
+                                    #     value=[],
+                                    # ),
+                                    # html.P("Filter by well type:", className="control_label"),
+                                    # dcc.RadioItems(
+                                    #     id="well_type_selector",
+                                    #     options=[
+                                    #         {"label": "All ", "value": "all"},
+                                    #         {"label": "Productive only ", "value": "productive"},
+                                    #         {"label": "Customize ", "value": "custom"},
+                                    #     ],
+                                    #     value="productive",
+                                    #     labelStyle={"display": "inline-block"},
+                                    #     className="dcc_control",
+                                    # ),
+                                    # dcc.Dropdown(
+                                    #     id="well_types",
+                                    #     options=well_type_options,
+                                    #     multi=True,
+                                    #     value=list(WELL_TYPES.keys()),
+                                    #     className="dcc_control",
+                                    # ),
+                                ],
+                                className="pretty_container four columns",
+                                id="cross-filter-options",
+                            ),
+                            html.Div(
+                                [
+                                    html.Div(
+                                        [
+                                            # html.Div(
+                                            #     [html.H6(id="well_text"), html.P("No. of Wells")],
+                                            #     id="wells",
+                                            #     className="mini_container",
+                                            # ),
+                                            # html.Div(
+                                            #     [html.H6(id="gasText"), html.P("Gas")],
+                                            #     id="gas",
+                                            #     className="mini_container",
+                                            # ),
+                                            # html.Div(
+                                            #     [html.H6(id="oilText"), html.P("Oil")],
+                                            #     id="oil",
+                                            #     className="mini_container",
+                                            # ),
+                                            # html.Div(
+                                            #     [html.H6(id="waterText"), html.P("Water")],
+                                            #     id="water",
+                                            #     className="mini_container",
+                                            # ),
+                                        ],
+                                        id="info-container",
+                                        className="row container-display",
+                                    ),
+                                    html.Div(
+                                        [dcc.Graph(id="count_graph"
+                                        
+
+                                            )],
+                                        id="countGraphContainer",
+                                        className="pretty_container",
+                                    ),
+                                ],
+                                id="right-column",
+                                className="eight columns",
+                            ),
+                        ],
+                        className="row flex-display",
+                    ),
+                    html.Div(
+                        [
+                            html.Div(
+                                [
+                                        dcc.Dropdown(
+                                        id="yaxis-column-high",
+                                        options=get_options_high_range_dic(),
+                                        multi=True,
+                                        value=numerical_cols_high_range,
+                                        className="dcc_control",
+                                    ),
+                                    dcc.Graph(id="high_range_graph")
+                                ],
+                                    className="pretty_container six columns",
+                                    ),
+                            html.Div(
+                                [
+                                dcc.Dropdown(
+                                        id="yaxis-column-low",
+                                        options=get_options_low_range_dic(),
+                                        multi=True,
+                                        value=numerical_cols_low_range,
+                                        className="dcc_control",
+                                    ),
+                                dcc.Graph(id="low_range_graph")
+                                ],
+                                className="pretty_container six columns",
+                            ),
+                        ],
+                        className="row flex-display",
+                    ),
+                    # html.Div(
+                    #     [
+                    #         html.Div(
+                    #             [dcc.Graph(id="pie_graph")],
+                    #             className="pretty_container seven columns",
+                    #         ),
+                    #         html.Div(
+                    #             [dcc.Graph(id="aggregate_graph")],
+                    #             className="pretty_container five columns",
+                    #         ),
+                    #     ],
+                    #     className="row flex-display",
+                    # ),
+
+
+
+
+                ]),
+                dcc.Tab(label='Analysis',
+                        value='tab-2',
+                        className='custom-tab',
+                        selected_className='custom-tab--selected', 
+                        children=[
                         html.Div(
-                            [
-                                html.H3(
-                                    "SOCORRO",
-                                    style={"margin-bottom": "0px"},
-                                ),
-                                html.H5(
-                                    "Seeking out corrosion, before it is too late.", style={"margin-top": "0px"}
-                                ),
-                            ]
-                        )
-                    ],
-                    className="one-half column",
-                    id="title",
-                ),
-                html.Div(
-                    [
-                        html.A(
-                            html.Button("SOCORRO Home", id="learn-more-button"),
-                            href="https://www.socorro.eu/",
-                        )
-                    ],
-                    className="one-third column",
-                    id="button",
-                ),
-            ],
-            id="header",
-            className="row flex-display",
-            style={"margin-bottom": "25px"},
-        ),
-        html.Div(
-            [
-                html.Div(
-                    [
-                        html.P(
-                            "Filter by construction date (or select range in histogram):",
-                            className="control_label",
-                        ),
-                        dcc.RangeSlider(
-                            id="year_slider",
-                            min=2012,
-                            max=2020,
-                            step=None,
-                            marks={
-                                2012: {'label': '2012', 'style': {'color': '#77b0b1'}},
-                                2014: '2014',
-                                2016: '2016',
-                                2018: '2018',
-                                2020: {'label': '2020', 'style': {'color': '#f50'}}
-                            },
-                            value=[2012, 2014],
-                            className="dcc_control",
-
-
-
-
-
-                        ),
-                        html.P("Choose y-axis:", className="control_label"),
-                        # dcc.RadioItems(
-                        #     id="well_status_selector",
-                        #     options=[
-                        #         {"label": "All ", "value": "all"},
-                        #         {"label": "Active only ", "value": "active"},
-                        #         {"label": "Customize ", "value": "custom"},
-                        #     ],
-                        #     value="active",
-                        #     labelStyle={"display": "inline-block"},
-                        #     className="dcc_control",
-                        # ),
-                        dcc.Dropdown(
-                            id="xaxis-column",
-                            options=get_options_dic(),
-                            #multi=True,
-                            value= get_datetime_col()[0],#list(STATUSES.keys()),
-                            className="dcc_control",
-                        ),
-                        dcc.Dropdown(
-                            id="yaxis-column",
-                            options=get_options_dic(),
-                            #multi=True,
-                            value='Temp °C', #get_datetime_col()[0],#list(STATUSES.keys()),
-                            className="dcc_control",
-                        ),
-                        # dcc.Checklist(
-                        #     id="lock_selector",
-                        #     options=[{"label": "Lock camera", "value": "locked"}],
-                        #     className="dcc_control",
-                        #     value=[],
-                        # ),
-                        # html.P("Filter by well type:", className="control_label"),
-                        # dcc.RadioItems(
-                        #     id="well_type_selector",
-                        #     options=[
-                        #         {"label": "All ", "value": "all"},
-                        #         {"label": "Productive only ", "value": "productive"},
-                        #         {"label": "Customize ", "value": "custom"},
-                        #     ],
-                        #     value="productive",
-                        #     labelStyle={"display": "inline-block"},
-                        #     className="dcc_control",
-                        # ),
-                        # dcc.Dropdown(
-                        #     id="well_types",
-                        #     options=well_type_options,
-                        #     multi=True,
-                        #     value=list(WELL_TYPES.keys()),
-                        #     className="dcc_control",
-                        # ),
-                    ],
-                    className="pretty_container four columns",
-                    id="cross-filter-options",
-                ),
-                html.Div(
-                    [
+                                        [
+                                            html.H3(
+                                                "Comming soon",
+                                                style={"margin-bottom": "0px"},
+                                            ),
+                                            html.H5(
+                                                "functionalities to be added", style={"margin-top": "0px"}
+                                            ),
+                                        ]
+                                    )
+                    # dcc.Graph(
+                    #     figure={
+                    #         'data': [
+                    #             {'x': [1, 2, 3], 'y': [1, 4, 1],
+                    #                 'type': 'bar', 'name': 'SF'},
+                    #             {'x': [1, 2, 3], 'y': [1, 2, 3],
+                    #              'type': 'bar', 'name': u'Montréal'},
+                    #         ]
+                    #     }
+                    # )
+                ]),
+                dcc.Tab(label='About SOCORRO',
+                        value='tab-3',
+                        className='custom-tab',
+                        selected_className='custom-tab--selected', 
+                        children=[
                         html.Div(
-                            [
-                                # html.Div(
-                                #     [html.H6(id="well_text"), html.P("No. of Wells")],
-                                #     id="wells",
-                                #     className="mini_container",
-                                # ),
-                                # html.Div(
-                                #     [html.H6(id="gasText"), html.P("Gas")],
-                                #     id="gas",
-                                #     className="mini_container",
-                                # ),
-                                # html.Div(
-                                #     [html.H6(id="oilText"), html.P("Oil")],
-                                #     id="oil",
-                                #     className="mini_container",
-                                # ),
-                                # html.Div(
-                                #     [html.H6(id="waterText"), html.P("Water")],
-                                #     id="water",
-                                #     className="mini_container",
-                                # ),
-                            ],
-                            id="info-container",
-                            className="row container-display",
-                        ),
-                        html.Div(
-                            [dcc.Graph(id="count_graph"
-                            
+                                        [
+                                            html.H3(
+                                                "Comming soon",
+                                                style={"margin-bottom": "0px"},
+                                            ),
+                                            html.H5(
+                                                "functionalities to be added", style={"margin-top": "0px"}
+                                            ),
+                                        ]
+                                    )
+                    # dcc.Graph(
+                    #     figure={
+                    #         'data': [
+                    #             {'x': [1, 2, 3], 'y': [2, 4, 3],
+                    #                 'type': 'bar', 'name': 'SF'},
+                    #             {'x': [1, 2, 3], 'y': [5, 4, 3],
+                    #              'type': 'bar', 'name': u'Montréal'},
+                    #         ]
+                    #     }
+                    # )
+                ]),
+            ])#end of tabs
 
-                                )],
-                            id="countGraphContainer",
-                            className="pretty_container",
-                        ),
-                    ],
-                    id="right-column",
-                    className="eight columns",
-                ),
-            ],
-            className="row flex-display",
-        ),
-        html.Div(
-            [
-                html.Div(
-                    [
-                            dcc.Dropdown(
-                            id="yaxis-column-high",
-                            options=get_options_high_range_dic(),
-                            multi=True,
-                            value=numerical_cols_high_range,
-                            className="dcc_control",
-                        ),
-                        dcc.Graph(id="high_range_graph")
-                    ],
-                        className="pretty_container six columns",
-                        ),
-                html.Div(
-                    [
-                    dcc.Dropdown(
-                            id="yaxis-column-low",
-                            options=get_options_low_range_dic(),
-                            multi=True,
-                            value=numerical_cols_low_range,
-                            className="dcc_control",
-                        ),
-                    dcc.Graph(id="low_range_graph")
-                    ],
-                    className="pretty_container six columns",
-                ),
-            ],
-            className="row flex-display",
-        ),
-        # html.Div(
-        #     [
-        #         html.Div(
-        #             [dcc.Graph(id="pie_graph")],
-        #             className="pretty_container seven columns",
-        #         ),
-        #         html.Div(
-        #             [dcc.Graph(id="aggregate_graph")],
-        #             className="pretty_container five columns",
-        #         ),
-        #     ],
-        #     className="row flex-display",
-        # ),
-    ],
+
+
+
+    ], #end of main body
+
     id="mainContainer",
     style={"display": "flex", "flex-direction": "column"},
 )
@@ -520,7 +601,6 @@ def update_year_slider(count_graph_selected):
 def make_main_figure(
     x_col,y_col,  year_slider#, selector, low_range_graph_layout
 ):
-    print(11)
     dff =  filter_dataframe(df_soc,  year_slider)
 
 
@@ -880,4 +960,4 @@ def make_low_range_figure(
 if __name__ == "__main__":
 
 
-    app.run_server(debug=True)
+    app.run_server(debug=True, threaded=True)

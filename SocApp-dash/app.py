@@ -5,8 +5,9 @@ import pathlib
 import dash
 import math
 import datetime as dt
-#import pandas as pd
-import modin.pandas as pd
+#import dask.dataframe as dd
+import pandas as pd
+#import modin.pandas as pd
 from dash.dependencies import Input, Output, State, ClientsideFunction
 import dash_core_components as dcc
 import dash_html_components as html
@@ -49,6 +50,7 @@ well_type_options = [
 
 # Load data
 df_soc = pd.read_excel('data/Continual monitoring data both areas-small.xlsx' , header=0, parse_dates=[0], index_col=0)#, squeeze=True
+
 #df.index = pd.to_datetime(df['Date'])
 x_col = 'Date (MM/DD/YYYY).1'
 
@@ -98,7 +100,7 @@ def get_options_low_range_dic():
     return option_list
 
 
-
+period = 20
 
 # Create global chart template
 mapbox_access_token = "pk.eyJ1IjoicGxvdGx5bWFwYm94IiwiYSI6ImNrOWJqb2F4djBnMjEzbG50amg0dnJieG4ifQ.Zme1-Uzoi75IaFbieBDl3A"
@@ -205,12 +207,16 @@ app.layout = html.Div(
                                         step=None,
                                         marks={
                                             2012: {'label': '2012', 'style': {'color': '#77b0b1'}},
+                                            2013: '2013',
                                             2014: '2014',
+                                            2015: '2015',
                                             2016: '2016',
+                                            2017: '2017',
                                             2018: '2018',
+                                            2019: '2019',
                                             2020: {'label': '2020', 'style': {'color': '#f50'}}
                                         },
-                                        value=[2012, 2014],
+                                        value=[2012, 2015],
                                         className="dcc_control",
 
 
@@ -438,13 +444,23 @@ app.layout = html.Div(
 
 
 def filter_dataframe(df, year_slider):
+    print("call: filter_dataframe")
+    #return df
+    print("Slider", year_slider)
+    if not year_slider :
+        print("return:1 filter_dataframe was empty", year_slider)
+        print(df)
+        return df
+    else:
+        print("else:2 filter_dataframe", year_slider)
 
+        dff = df[
+             (df[get_datetime_col()[0]] > dt.datetime(year_slider[0], 1, 1))
+            & (df[get_datetime_col()[0]] < dt.datetime(year_slider[1], 1, 1))
+        ]
+        print("return:2 filter_dataframe", dff)
+        return dff
 
-    dff = df[
-         (df[get_datetime_col()[0]] > dt.datetime(year_slider[0], 1, 1))
-        & (df[get_datetime_col()[0]] < dt.datetime(year_slider[1], 1, 1))
-    ]
-    return dff
 
 
 # def produce_individual(api_well_num):
@@ -555,11 +571,11 @@ def filter_dataframe(df, year_slider):
 
 
 # Slider -> count graph
-@app.callback(Output("year_slider", "value"), [Input("count_graph", "selectedData")])
-def update_year_slider(count_graph_selected):
+# @app.callback(Output("year_slider", "value"), [Input("count_graph", "selectedData")])
+# def update_year_slider(count_graph_selected):
 
-    if count_graph_selected is None:
-        return [2012, 2016]
+#     if count_graph_selected is None:
+#         return [2012, 2016]
 
 
 
@@ -604,21 +620,24 @@ def update_year_slider(count_graph_selected):
 def make_main_figure(
     x_col,y_col,  year_slider#, selector, low_range_graph_layout
 ):
+    print(" called: make_main_figure", x_col, y_col, year_slider)
+    dff = df_soc
+    print(" c1 " ) 
     dff =  filter_dataframe(df_soc,  year_slider)
 
 
-    colors = []
-    for i in range(2012, 2020):
-        if i >= int(year_slider[0]) and i < int(year_slider[1]):
-            colors.append("rgb(123, 199, 255)")
-        else:
-            colors.append("rgba(123, 199, 255, 0.2)")
-
+    # colors = []
+    # for i in range(2012, 2020):
+    #     if i >= int(year_slider[0]) and i < int(year_slider[1]):
+    #         colors.append("rgb(123, 199, 255)")
+    #     else:
+    #         colors.append("rgba(123, 199, 255, 0.2)")
+    print(" c2 " )
 
     layout_count_graph = copy.deepcopy(layout)
 
 
-
+    print(" c3 " )
     data = [
         dict(
             type="Scattergl",
@@ -630,14 +649,16 @@ def make_main_figure(
             #marker=dict(symbol="diamond-open"),
             #opacity=0,
             hoverinfo="skip",
-            marker=dict(color=colors),
+            #marker=dict(color=colors),
         )]
-
+    print(" c4 " )
     layout_count_graph["title"] = y_col
     layout_count_graph["dragmode"] = "select"
     layout_count_graph["showlegend"] = False
     layout_count_graph["autosize"] = True
     figure = dict(data=data, layout=layout_count_graph)
+
+    print(" returned: make_main_figure")#,  figure
     return figure
 
 
@@ -652,7 +673,9 @@ def make_main_figure(
 def make_low_range_figure(
     y_col,  year_slider#, selector, low_range_graph_layout
 ):
-
+    print(" called: make_low_range_figure",  y_col, year_slider)
+    dff = df_soc
+ 
     dff =  filter_dataframe(df_soc,  year_slider)
 
     layout_low_range_graph = copy.deepcopy(layout)
@@ -663,13 +686,16 @@ def make_low_range_figure(
     layout_low_range_graph["autosize"] = True
  
 
-
+    print(" l1 " )
     n_rows = len(y_col) # make_subplots breaks down if rows > 70
 
     fig = tools.make_subplots(rows=n_rows, cols=1)
+
+    print(" l2 " )
+
     fig['layout'].update(height=4000, autosize = True, showlegend = True, dragmode = "select", title='Second Class of Parameters')#, title = y_col , width=1000
         
-
+    print(" l3 " )
     #print(fig['layout'])
 
     for i in range(n_rows):
@@ -682,6 +708,17 @@ def make_low_range_figure(
         fig.append_trace(trace, i+1, 1)
         fig['layout']['yaxis' + str(i+1)].update(title=y_col[i])
 
+        trace1 = go.Scattergl(x = dff[get_datetime_col()[0]], y = dff[y_col[i]].rolling(period).mean(), 
+                            name=y_col[i], 
+                            mode="lines",#lines+
+                            #line=dict(shape="spline", smoothing=2, width=1, color=(list(COLORS.values()))[i]),
+                            marker=dict(symbol="circle"),
+                            hoverinfo="skip",)
+        fig.append_trace(trace1, i+1, 1)
+        fig['layout']['yaxis' + str(i+1)].update(title=y_col[i])
+
+    print(" l4 " )
+    print(" returned: make_low_range_figure")#,  fig
     return fig
 
 
@@ -703,6 +740,8 @@ def make_low_range_figure(
     layout_low_range_graph["showlegend"] = True
     layout_low_range_graph["autosize"] = True
     figure = dict(data=data, layout=layout_low_range_graph)
+
+
     return figure
 
 
@@ -714,22 +753,29 @@ def make_low_range_figure(
     ]#,
     #[State("lock_selector", "value"), State("low_range_graph", "relayoutData")],
 )
-def make_low_range_figure(
+def make_high_range_figure(
     y_col,  year_slider#, selector, low_range_graph_layout
 ):
+    print(" called: make_high_range_figure",  y_col, year_slider)
+
+    dff = df_soc
     dff =  filter_dataframe(df_soc,  year_slider)
 
     layout_high_range_graph = copy.deepcopy(layout)
     #'Cond µS/cm', 'SpCond µS/cm', 'nLF Cond µS/cm'
 
-
+    print(" h1" )
 
     n_rows = len(y_col) # make_subplots breaks down if rows > 70
 
     fig = tools.make_subplots(rows=n_rows, cols=1)
+
+    print(" h2" )
+
     fig['layout'].update(height=4000, autosize = True, showlegend = True, dragmode = "select", title='First Class of Parameters')#, title = y_col , width=1000
 
-
+    print(" h3" )
+    print(dff)
     #print(fig['layout'])
 
     for i in range(n_rows):
@@ -742,6 +788,17 @@ def make_low_range_figure(
         fig.append_trace(trace, i+1, 1)
         fig['layout']['yaxis' + str(i+1)].update(title=y_col[i])
 
+        trace1 = go.Scattergl(x = dff[get_datetime_col()[0]], y = dff[y_col[i]].rolling(period).mean(), 
+                            name=y_col[i], 
+                            mode="lines",#lines+
+                            #line=dict(shape="spline", smoothing=2, width=1, color=(list(COLORS.values()))[i]),
+                            marker=dict(symbol="circle"),
+                            hoverinfo="skip",)
+        fig.append_trace(trace1, i+1, 1)
+        fig['layout']['yaxis' + str(i+1)].update(title=y_col[i])
+
+    print(" h4" )
+    print(" returned: make_high_range_figure")#,  fig
     return fig
 
 
@@ -1015,5 +1072,6 @@ def make_low_range_figure(
 # Main
 if __name__ == "__main__":
 
-
-    app.run_server(debug=True, threaded=True)
+    print("Data Types: " , df_soc.dtypes)
+    print("Index Name: ", df_soc.index.name)
+    app.run_server(debug=True, threaded=False)

@@ -5,10 +5,17 @@ import pathlib
 import dash
 import math
 import datetime as dt
-import pandas as pd
+#import pandas as pd
+import modin.pandas as pd
 from dash.dependencies import Input, Output, State, ClientsideFunction
 import dash_core_components as dcc
 import dash_html_components as html
+from plotly.subplots import make_subplots
+
+#from plotly.offline import plot
+import plotly.graph_objs as go
+from plotly import tools
+
 import random
 # Multi-dropdown options
 from controls import COUNTIES, STATUSES, WELL_TYPES, COLORS
@@ -320,12 +327,8 @@ app.layout = html.Div(
                                         value=numerical_cols_high_range,
                                         className="dcc_control",
                                     ),
-                                    dcc.Graph(id="high_range_graph")
-                                ],
-                                    className="pretty_container six columns",
-                                    ),
-                            html.Div(
-                                [
+                                    dcc.Graph(id="high_range_graph"),
+                                
                                 dcc.Dropdown(
                                         id="yaxis-column-low",
                                         options=get_options_low_range_dic(),
@@ -335,7 +338,7 @@ app.layout = html.Div(
                                     ),
                                 dcc.Graph(id="low_range_graph")
                                 ],
-                                className="pretty_container six columns",
+                                className="pretty_container twelve columns",
                             ),
                         ],
                         className="row flex-display",
@@ -618,7 +621,7 @@ def make_main_figure(
 
     data = [
         dict(
-            type="scatter",
+            type="Scattergl",
             mode="markers",#lines+
             name="Gas Produced (mcf)",
             x=dff[x_col],
@@ -654,6 +657,34 @@ def make_low_range_figure(
 
     layout_low_range_graph = copy.deepcopy(layout)
     #'Cond µS/cm', 'SpCond µS/cm', 'nLF Cond µS/cm'
+    layout_low_range_graph["title"] = y_col
+    layout_low_range_graph["dragmode"] = "select"
+    layout_low_range_graph["showlegend"] = True
+    layout_low_range_graph["autosize"] = True
+ 
+
+
+    n_rows = len(y_col) # make_subplots breaks down if rows > 70
+
+    fig = tools.make_subplots(rows=n_rows, cols=1)
+    fig['layout'].update(height=4000, autosize = True, showlegend = True, dragmode = "select", title='Second Class of Parameters')#, title = y_col , width=1000
+        
+
+    #print(fig['layout'])
+
+    for i in range(n_rows):
+        trace = go.Scattergl(x = dff[get_datetime_col()[0]], y = dff[y_col[i]], 
+                            name=y_col[i], 
+                            mode="markers",#lines+
+                            #line=dict(shape="spline", smoothing=2, width=1, color=(list(COLORS.values()))[i]),
+                            marker=dict(symbol="circle"),
+                            hoverinfo="skip",)
+        fig.append_trace(trace, i+1, 1)
+        fig['layout']['yaxis' + str(i+1)].update(title=y_col[i])
+
+    return fig
+
+
     data = [ dict(
             type="scatter",
             mode="lines",#lines+
@@ -690,6 +721,31 @@ def make_low_range_figure(
 
     layout_high_range_graph = copy.deepcopy(layout)
     #'Cond µS/cm', 'SpCond µS/cm', 'nLF Cond µS/cm'
+
+
+
+    n_rows = len(y_col) # make_subplots breaks down if rows > 70
+
+    fig = tools.make_subplots(rows=n_rows, cols=1)
+    fig['layout'].update(height=4000, autosize = True, showlegend = True, dragmode = "select", title='First Class of Parameters')#, title = y_col , width=1000
+
+
+    #print(fig['layout'])
+
+    for i in range(n_rows):
+        trace = go.Scattergl(x = dff[get_datetime_col()[0]], y = dff[y_col[i]], 
+                            name=y_col[i], 
+                            mode="markers",#lines+
+                            #line=dict(shape="spline", smoothing=2, width=1, color=(list(COLORS.values()))[i]),
+                            marker=dict(symbol="circle"),
+                            hoverinfo="skip",)
+        fig.append_trace(trace, i+1, 1)
+        fig['layout']['yaxis' + str(i+1)].update(title=y_col[i])
+
+    return fig
+
+
+
     data = [ dict(
             type="scatter",
             mode="lines",#lines+

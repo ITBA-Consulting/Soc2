@@ -144,3 +144,28 @@ COLORS = dict(
     GW="#A1D99B",
     
 )
+
+import plotly.graph_objs as go
+import plotly.express as px
+import pandas as pd
+import numpy as np
+# define colors as a list 
+colors = px.colors.qualitative.Plotly
+
+# convert plotly hex colors to rgba to enable transparency adjustments
+def hex_rgba(hex, transparency):
+    col_hex = hex.lstrip('#')
+    col_rgb = list(int(col_hex[i:i+2], 16) for i in (0, 2, 4))
+    col_rgb.extend([transparency])
+    areacol = tuple(col_rgb)
+    return areacol
+
+rgba = [hex_rgba(c, transparency=0.2) for c in colors]
+colCycle = ['rgba'+str(elem) for elem in rgba]
+
+# Make sure the colors run in cycles if there are more lines than colors
+def next_col(cols):
+    while True:
+        for col in cols:
+            yield col
+line_color=next_col(cols=colCycle)

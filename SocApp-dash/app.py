@@ -21,6 +21,8 @@ import random
 # Multi-dropdown options
 from controls import COUNTIES, STATUSES, WELL_TYPES, COLORS
 import upload_file as upload
+import plotly.express as px
+import numpy as np
 
 # get relative data folder
 PATH = pathlib.Path(__file__).parent
@@ -47,6 +49,38 @@ well_type_options = [
     {"label": str(WELL_TYPES[well_type]), "value": str(well_type)}
     for well_type in WELL_TYPES
 ]
+
+
+
+
+
+# sample data in a pandas dataframe
+np.random.seed(1)
+
+# define colors as a list 
+colors = px.colors.qualitative.Plotly
+
+# convert plotly hex colors to rgba to enable transparency adjustments
+def hex_rgba(hex, transparency):
+    col_hex = hex.lstrip('#')
+    col_rgb = list(int(col_hex[i:i+2], 16) for i in (0, 2, 4))
+    col_rgb.extend([transparency])
+    areacol = tuple(col_rgb)
+    return areacol
+
+rgba = [hex_rgba(c, transparency=0.2) for c in colors]
+colCycle = ['rgba'+str(elem) for elem in rgba]
+
+# Make sure the colors run in cycles if there are more lines than colors
+def next_col(cols):
+    while True:
+        for col in cols:
+            yield col
+line_color=next_col(cols=colCycle)
+
+
+
+
 
 
 # Load data
@@ -103,8 +137,8 @@ def get_options_low_range_dic():
     return option_list
 
 
-period = 50
-
+period1 = 50
+period2 = 200
 # Create global chart template
 mapbox_access_token = "pk.eyJ1IjoicGxvdGx5bWFwYm94IiwiYSI6ImNrOWJqb2F4djBnMjEzbG50amg0dnJieG4ifQ.Zme1-Uzoi75IaFbieBDl3A"
 
@@ -727,6 +761,8 @@ def make_low_range_figure(
     #print(fig['layout'])
 
     for i in range(n_rows):
+        new_col = next(line_color)
+
         trace = go.Scattergl(x = dff[get_datetime_col()[0]], y = dff[y_col[i]], 
                             name=y_col[i], 
                             mode="markers",#lines+
@@ -736,13 +772,27 @@ def make_low_range_figure(
         fig.append_trace(trace, i+1, 1)
         fig['layout']['yaxis' + str(i+1)].update(title=y_col[i])
 
-        trace1 = go.Scattergl(x = dff[get_datetime_col()[0]], y = dff[y_col[i]].rolling(period).mean(), 
-                            #name=y_col[i], 
+        trace1 = go.Scattergl(x = dff[get_datetime_col()[0]], y = dff[y_col[i]].rolling(period1).mean(), 
+                            name="MA(" + str(period1) + ") " + y_col[i], 
                             mode="lines",#lines+
+                            fill='tozerox',
+                            fillcolor=new_col,
+                            line=dict(color='rgba(255,255,255,0)'),
                             #line=dict(shape="spline", smoothing=2, width=1, color=(list(COLORS.values()))[i]),
                             marker=dict(symbol="circle"),
                             hoverinfo="skip",)
         fig.append_trace(trace1, i+1, 1)
+
+        trace2 = go.Scattergl(x = dff[get_datetime_col()[0]], y = dff[y_col[i]].rolling(period2).mean(), 
+                            name="MA(" + str(period2) + ") " + y_col[i], 
+                            mode="lines",#lines+
+                            #fill='tonexty',
+                            line=dict(color=new_col, width=2.5),
+                            #line=dict(shape="spline", smoothing=2, width=1, color=(list(COLORS.values()))[i]),
+                            marker=dict(symbol="circle"),
+                            hoverinfo="skip",)
+        fig.append_trace(trace2, i+1, 1)
+
 
     print(" l4 " )
     print(" returned: make_low_range_figure")#,  fig
@@ -806,6 +856,7 @@ def make_high_range_figure(
     #print(fig['layout'])
 
     for i in range(n_rows):
+        new_col = next(line_color)
         trace = go.Scattergl(x = dff[get_datetime_col()[0]], y = dff[y_col[i]], 
                             name=y_col[i], 
                             mode="markers",#lines+
@@ -815,13 +866,26 @@ def make_high_range_figure(
         fig.append_trace(trace, i+1, 1)
         fig['layout']['yaxis' + str(i+1)].update(title=y_col[i])
 
-        trace1 = go.Scattergl(x = dff[get_datetime_col()[0]], y = dff[y_col[i]].rolling(period).mean(), 
-                            #name=y_col[i], 
+        trace1 = go.Scattergl(x = dff[get_datetime_col()[0]], y = dff[y_col[i]].rolling(period1).mean(), 
+                            name="MA(" + str(period1) + ") " + y_col[i], 
                             mode="lines",#lines+
                             #line=dict(shape="spline", smoothing=2, width=1, color=(list(COLORS.values()))[i]),
+                            fill='tozerox',
+                            fillcolor=new_col,
+                            line=dict(color='rgba(255,255,255,0)'),
                             marker=dict(symbol="circle"),
                             hoverinfo="skip",)
         fig.append_trace(trace1, i+1, 1)
+
+        trace2 = go.Scattergl(x = dff[get_datetime_col()[0]], y = dff[y_col[i]].rolling(period2).mean(), 
+                            name="MA(" + str(period2) + ") " + y_col[i], 
+                            mode="lines",#lines+
+                            #fill='tonexty',
+                            line=dict(color=new_col, width=2.5),
+                            #line=dict(shape="spline", smoothing=2, width=1, color=(list(COLORS.values()))[i]),
+                            marker=dict(symbol="circle"),
+                            hoverinfo="skip",)
+        fig.append_trace(trace2, i+1, 1)
 
     print(" h4" )
     print(" returned: make_high_range_figure")#,  fig

@@ -20,6 +20,7 @@ from plotly import tools
 import random
 # Multi-dropdown options
 from controls import COUNTIES, STATUSES, WELL_TYPES, COLORS
+import upload_file as upload
 
 # get relative data folder
 PATH = pathlib.Path(__file__).parent
@@ -29,6 +30,8 @@ app = dash.Dash(
     __name__, meta_tags=[{"name": "viewport", "content": "width=device-width"}]
 )
 server = app.server
+app.scripts.config.serve_locally = True
+app.css.config.serve_locally = True
 
 # Create controls
 county_options = [
@@ -100,7 +103,7 @@ def get_options_low_range_dic():
     return option_list
 
 
-period = 20
+period = 50
 
 # Create global chart template
 mapbox_access_token = "pk.eyJ1IjoicGxvdGx5bWFwYm94IiwiYSI6ImNrOWJqb2F4djBnMjEzbG50amg0dnJieG4ifQ.Zme1-Uzoi75IaFbieBDl3A"
@@ -194,8 +197,33 @@ app.layout = html.Div(
                     ),
                     html.Div(
                         [
-                            html.Div(
+
+                             html.Div(
                                 [
+                                html.Div([
+                                        dcc.Upload(
+                                            id='upload-data',
+                                            children=html.Div([
+                                                'Drag and Drop or ',
+                                                html.A('Select Files')
+                                            ]),
+                                            style={
+                                                'width': '100%',
+                                                'height': '60px',
+                                                'lineHeight': '60px',
+                                                'borderWidth': '1px',
+                                                'borderStyle': 'dashed',
+                                                'borderRadius': '5px',
+                                                'textAlign': 'center',
+                                                'margin': '10px'
+                                            },
+                                            # Allow multiple files to be uploaded
+                                            multiple=True
+                                        ),
+                                        html.Div(id='output-data-upload')
+
+                                    ]),
+
                                     html.P(
                                         "Filter by construction date (or select range in histogram):",
                                         className="control_label",
@@ -626,12 +654,12 @@ def make_main_figure(
     dff =  filter_dataframe(df_soc,  year_slider)
 
 
-    # colors = []
-    # for i in range(2012, 2020):
-    #     if i >= int(year_slider[0]) and i < int(year_slider[1]):
-    #         colors.append("rgb(123, 199, 255)")
-    #     else:
-    #         colors.append("rgba(123, 199, 255, 0.2)")
+    colors = []
+    for i in range(2012, 2020):
+        if i >= int(year_slider[0]) and i < int(year_slider[1]):
+            colors.append("rgb(123, 199, 255)")
+        else:
+            colors.append("rgba(123, 199, 255, 0.2)")
     print(" c2 " )
 
     layout_count_graph = copy.deepcopy(layout)
@@ -645,11 +673,11 @@ def make_main_figure(
             name="Gas Produced (mcf)",
             x=dff[x_col],
             y=dff[y_col],
-            line=dict(shape="spline", smoothing=2, width=1, color="#fac1b7"),
+            line=dict(shape="spline", smoothing=2, width=1),#, color="#fac1b7"
             #marker=dict(symbol="diamond-open"),
-            #opacity=0,
+            opacity=0.5,
             hoverinfo="skip",
-            #marker=dict(color=colors),
+            marker=dict(color=colors),
         )]
     print(" c4 " )
     layout_count_graph["title"] = y_col
@@ -693,7 +721,7 @@ def make_low_range_figure(
 
     print(" l2 " )
 
-    fig['layout'].update(height=4000, autosize = True, showlegend = True, dragmode = "select", title='Second Class of Parameters')#, title = y_col , width=1000
+    fig['layout'].update(height=3000, autosize = True, showlegend = True, dragmode = "select", title='Second Class of Parameters')#, title = y_col , width=1000
         
     print(" l3 " )
     #print(fig['layout'])
@@ -709,13 +737,12 @@ def make_low_range_figure(
         fig['layout']['yaxis' + str(i+1)].update(title=y_col[i])
 
         trace1 = go.Scattergl(x = dff[get_datetime_col()[0]], y = dff[y_col[i]].rolling(period).mean(), 
-                            name=y_col[i], 
+                            #name=y_col[i], 
                             mode="lines",#lines+
                             #line=dict(shape="spline", smoothing=2, width=1, color=(list(COLORS.values()))[i]),
                             marker=dict(symbol="circle"),
                             hoverinfo="skip",)
         fig.append_trace(trace1, i+1, 1)
-        fig['layout']['yaxis' + str(i+1)].update(title=y_col[i])
 
     print(" l4 " )
     print(" returned: make_low_range_figure")#,  fig
@@ -772,7 +799,7 @@ def make_high_range_figure(
 
     print(" h2" )
 
-    fig['layout'].update(height=4000, autosize = True, showlegend = True, dragmode = "select", title='First Class of Parameters')#, title = y_col , width=1000
+    fig['layout'].update(height=1000, autosize = True, showlegend = True, dragmode = "select", title='First Class of Parameters')#, title = y_col , width=1000
 
     print(" h3" )
     print(dff)
@@ -789,13 +816,12 @@ def make_high_range_figure(
         fig['layout']['yaxis' + str(i+1)].update(title=y_col[i])
 
         trace1 = go.Scattergl(x = dff[get_datetime_col()[0]], y = dff[y_col[i]].rolling(period).mean(), 
-                            name=y_col[i], 
+                            #name=y_col[i], 
                             mode="lines",#lines+
                             #line=dict(shape="spline", smoothing=2, width=1, color=(list(COLORS.values()))[i]),
                             marker=dict(symbol="circle"),
                             hoverinfo="skip",)
         fig.append_trace(trace1, i+1, 1)
-        fig['layout']['yaxis' + str(i+1)].update(title=y_col[i])
 
     print(" h4" )
     print(" returned: make_high_range_figure")#,  fig
@@ -1067,11 +1093,21 @@ def make_high_range_figure(
 
 
 
-
-
+@app.callback(Output('output-data-upload', 'children'),
+              [Input('upload-data', 'contents')],
+              [State('upload-data', 'filename'),
+               State('upload-data', 'last_modified')])
+def update_output(list_of_contents, list_of_names, list_of_dates):
+    if list_of_contents is not None:
+        print(list_of_names)
+        print("not none")
+        [df_soc, fnamepath] = upload.parse_contents(list_of_names) 
+        print(df_soc)
+        return 
 # Main
 if __name__ == "__main__":
 
     print("Data Types: " , df_soc.dtypes)
     print("Index Name: ", df_soc.index.name)
     app.run_server(debug=True, threaded=False)
+    

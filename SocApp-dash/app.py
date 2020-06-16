@@ -23,6 +23,7 @@ from controls import COUNTIES, STATUSES, WELL_TYPES, COLORS
 import upload_file as upload
 import plotly.express as px
 import numpy as np
+import vaex
 
 # get relative data folder
 PATH = pathlib.Path(__file__).parent
@@ -80,13 +81,19 @@ line_color=next_col(cols=colCycle)
 
 
 
+from pandasvis.main import main as pdvis
 
 
 
 # Load data
 
 # Load data
-df_soc = pd.read_excel('data/Continual monitoring data both areas-small.xlsx' , header=0, parse_dates=[0], index_col=0)#, squeeze=True
+df_soc = pd.read_excel('data/Continual monitoring data both areas.xlsx' , header=0, parse_dates=[0], index_col=0)#, squeeze=True
+
+
+#pp = pdvis()
+
+
 
 #df.index = pd.to_datetime(df['Date'])
 x_col = 'Date (MM/DD/YYYY).1'
@@ -135,6 +142,20 @@ def get_options_low_range_dic():
     for col in numerical_cols_low_range:
         option_list.append({'label': col, 'value': col})
     return option_list
+
+
+
+
+from scipy import stats 
+
+for e in get_options_list():
+    removed_outliers = df_soc[e].between(df_soc[e].quantile(.05), df_soc[e].quantile(.95))
+    print("from column " , e,  removed_outliers.value_counts(), " are removed.")
+    index_names = df_soc[~removed_outliers].index # INVERT removed_outliers!!
+    df_soc.drop(index_names, inplace=True)
+    break
+
+
 
 
 period1 = 50
@@ -684,7 +705,6 @@ def make_main_figure(
 ):
     print(" called: make_main_figure", x_col, y_col, year_slider)
     dff = df_soc
-    print(" c1 " ) 
     dff =  filter_dataframe(df_soc,  year_slider)
 
 
@@ -694,12 +714,9 @@ def make_main_figure(
             colors.append("rgb(123, 199, 255)")
         else:
             colors.append("rgba(123, 199, 255, 0.2)")
-    print(" c2 " )
 
     layout_count_graph = copy.deepcopy(layout)
 
-
-    print(" c3 " )
     data = [
         dict(
             type="Scattergl",
@@ -713,7 +730,6 @@ def make_main_figure(
             hoverinfo="skip",
             marker=dict(color=colors),
         )]
-    print(" c4 " )
     layout_count_graph["title"] = y_col
     layout_count_graph["dragmode"] = "select"
     layout_count_graph["showlegend"] = False
@@ -748,16 +764,13 @@ def make_low_range_figure(
     layout_low_range_graph["autosize"] = True
  
 
-    print(" l1 " )
     n_rows = len(y_col) # make_subplots breaks down if rows > 70
 
     fig = tools.make_subplots(rows=n_rows, cols=1)
 
-    print(" l2 " )
 
     fig['layout'].update(height=3000, autosize = True, showlegend = True, dragmode = "select", title='Second Class of Parameters')#, title = y_col , width=1000
         
-    print(" l3 " )
     #print(fig['layout'])
 
     for i in range(n_rows):
@@ -794,7 +807,6 @@ def make_low_range_figure(
         fig.append_trace(trace2, i+1, 1)
 
 
-    print(" l4 " )
     print(" returned: make_low_range_figure")#,  fig
     return fig
 
@@ -841,18 +853,14 @@ def make_high_range_figure(
     layout_high_range_graph = copy.deepcopy(layout)
     #'Cond µS/cm', 'SpCond µS/cm', 'nLF Cond µS/cm'
 
-    print(" h1" )
 
     n_rows = len(y_col) # make_subplots breaks down if rows > 70
 
     fig = tools.make_subplots(rows=n_rows, cols=1)
 
-    print(" h2" )
 
     fig['layout'].update(height=1000, autosize = True, showlegend = True, dragmode = "select", title='First Class of Parameters')#, title = y_col , width=1000
 
-    print(" h3" )
-    print(dff)
     #print(fig['layout'])
 
     for i in range(n_rows):
@@ -887,7 +895,6 @@ def make_high_range_figure(
                             hoverinfo="skip",)
         fig.append_trace(trace2, i+1, 1)
 
-    print(" h4" )
     print(" returned: make_high_range_figure")#,  fig
     return fig
 

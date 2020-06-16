@@ -22,7 +22,6 @@ def parse_contents( filename):
             print("read excel2")
     except Exception as e:
         print("read except")
-        print(e)
         return html.Div([
             'There was an error processing this file.'
         ])

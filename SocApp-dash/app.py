@@ -81,7 +81,7 @@ line_color=next_col(cols=colCycle)
 
 
 
-from pandasvis.main import main as pdvis
+#rom pandasvis.main import main as pdvis
 
 
 
@@ -91,7 +91,6 @@ from pandasvis.main import main as pdvis
 df_soc = pd.read_excel('data/Continual monitoring data both areas.xlsx' , header=0, parse_dates=[0], index_col=0)#, squeeze=True
 
 
-#pp = pdvis()
 
 
 
@@ -144,17 +143,27 @@ def get_options_low_range_dic():
     return option_list
 
 
+### preprocessing
 
 
-from scipy import stats 
 
-for e in get_options_list():
-    removed_outliers = df_soc[e].between(df_soc[e].quantile(.05), df_soc[e].quantile(.95))
-    print("from column " , e,  removed_outliers.value_counts(), " are removed.")
-    index_names = df_soc[~removed_outliers].index # INVERT removed_outliers!!
-    df_soc.drop(index_names, inplace=True)
-    break
+# Imputation
 
+#Impute Series
+
+
+cols_with_missing = (col for col in df_soc.columns
+                                 if df_soc[col].isnull().any())
+print("columns with NAN after imputing ...", cols_with_missing)
+
+import Imputers as imp
+df_soc = imp.impute_naive(df_soc, numerical_col)
+
+
+import DataCleaning as dc
+df_soc = dc.dc_naive(df_soc, numerical_col)
+
+#pp = pdvis()
 
 
 
@@ -529,19 +538,18 @@ app.layout = html.Div(
 def filter_dataframe(df, year_slider):
     print("call: filter_dataframe")
     #return df
-    print("Slider", year_slider)
+    
     if not year_slider :
-        print("return:1 filter_dataframe was empty", year_slider)
-        print(df)
+        print("return:1 filter_dataframe was empty" )
         return df
     else:
-        print("else:2 filter_dataframe", year_slider)
+        print("else:2 filter_dataframe" )
 
         dff = df[
              (df[get_datetime_col()[0]] > dt.datetime(year_slider[0], 1, 1))
             & (df[get_datetime_col()[0]] < dt.datetime(year_slider[1], 1, 1))
         ]
-        print("return:2 filter_dataframe", dff)
+        print("return:2 filter_dataframe")
         return dff
 
 
@@ -703,7 +711,7 @@ def filter_dataframe(df, year_slider):
 def make_main_figure(
     x_col,y_col,  year_slider#, selector, low_range_graph_layout
 ):
-    print(" called: make_main_figure", x_col, y_col, year_slider)
+    print(" called: make_main_figure" )
     dff = df_soc
     dff =  filter_dataframe(df_soc,  year_slider)
 
@@ -725,10 +733,12 @@ def make_main_figure(
             x=dff[x_col],
             y=dff[y_col],
             line=dict(shape="spline", smoothing=2, width=1),#, color="#fac1b7"
+            
             #marker=dict(symbol="diamond-open"),
             opacity=0.5,
             hoverinfo="skip",
-            marker=dict(color=colors),
+            #marker=dict(color=colors),
+            marker=dict(symbol="circle-open"),
         )]
     layout_count_graph["title"] = y_col
     layout_count_graph["dragmode"] = "select"
@@ -751,7 +761,7 @@ def make_main_figure(
 def make_low_range_figure(
     y_col,  year_slider#, selector, low_range_graph_layout
 ):
-    print(" called: make_low_range_figure",  y_col, year_slider)
+    print(" called: make_low_range_figure" )
     dff = df_soc
  
     dff =  filter_dataframe(df_soc,  year_slider)
@@ -780,7 +790,7 @@ def make_low_range_figure(
                             name=y_col[i], 
                             mode="markers",#lines+
                             #line=dict(shape="spline", smoothing=2, width=1, color=(list(COLORS.values()))[i]),
-                            marker=dict(symbol="circle"),
+                            marker=dict(symbol="circle-open"),
                             hoverinfo="skip",)
         fig.append_trace(trace, i+1, 1)
         fig['layout']['yaxis' + str(i+1)].update(title=y_col[i])
@@ -788,21 +798,21 @@ def make_low_range_figure(
         trace1 = go.Scattergl(x = dff[get_datetime_col()[0]], y = dff[y_col[i]].rolling(period1).mean(), 
                             name="MA(" + str(period1) + ") " + y_col[i], 
                             mode="lines",#lines+
-                            fill='tozerox',
-                            fillcolor=new_col,
-                            line=dict(color='rgba(255,255,255,0)'),
+                            #fill='tozerox',
+                            #fillcolor=new_col,
+                            line=dict(color=new_col, width=2.5),
                             #line=dict(shape="spline", smoothing=2, width=1, color=(list(COLORS.values()))[i]),
-                            marker=dict(symbol="circle"),
+                            marker=dict(symbol="circle-open"),
                             hoverinfo="skip",)
         fig.append_trace(trace1, i+1, 1)
-
+        new_col = next(line_color)
         trace2 = go.Scattergl(x = dff[get_datetime_col()[0]], y = dff[y_col[i]].rolling(period2).mean(), 
                             name="MA(" + str(period2) + ") " + y_col[i], 
                             mode="lines",#lines+
                             #fill='tonexty',
                             line=dict(color=new_col, width=2.5),
                             #line=dict(shape="spline", smoothing=2, width=1, color=(list(COLORS.values()))[i]),
-                            marker=dict(symbol="circle"),
+                            marker=dict(symbol="circle-open"),
                             hoverinfo="skip",)
         fig.append_trace(trace2, i+1, 1)
 
@@ -845,7 +855,7 @@ def make_low_range_figure(
 def make_high_range_figure(
     y_col,  year_slider#, selector, low_range_graph_layout
 ):
-    print(" called: make_high_range_figure",  y_col, year_slider)
+    print(" called: make_high_range_figure")
 
     dff = df_soc
     dff =  filter_dataframe(df_soc,  year_slider)
@@ -869,7 +879,7 @@ def make_high_range_figure(
                             name=y_col[i], 
                             mode="markers",#lines+
                             #line=dict(shape="spline", smoothing=2, width=1, color=(list(COLORS.values()))[i]),
-                            marker=dict(symbol="circle"),
+                            marker=dict(symbol="circle-open"),
                             hoverinfo="skip",)
         fig.append_trace(trace, i+1, 1)
         fig['layout']['yaxis' + str(i+1)].update(title=y_col[i])
@@ -878,20 +888,20 @@ def make_high_range_figure(
                             name="MA(" + str(period1) + ") " + y_col[i], 
                             mode="lines",#lines+
                             #line=dict(shape="spline", smoothing=2, width=1, color=(list(COLORS.values()))[i]),
-                            fill='tozerox',
-                            fillcolor=new_col,
-                            line=dict(color='rgba(255,255,255,0)'),
-                            marker=dict(symbol="circle"),
+                            #fill='tozerox',
+                            #fillcolor=new_col,
+                            line=dict(color=new_col, width=2.5),
+                            marker=dict(symbol="circle-open"),
                             hoverinfo="skip",)
         fig.append_trace(trace1, i+1, 1)
-
+        new_col = next(line_color)
         trace2 = go.Scattergl(x = dff[get_datetime_col()[0]], y = dff[y_col[i]].rolling(period2).mean(), 
                             name="MA(" + str(period2) + ") " + y_col[i], 
                             mode="lines",#lines+
                             #fill='tonexty',
                             line=dict(color=new_col, width=2.5),
                             #line=dict(shape="spline", smoothing=2, width=1, color=(list(COLORS.values()))[i]),
-                            marker=dict(symbol="circle"),
+                            marker=dict(symbol="circle-open"),
                             hoverinfo="skip",)
         fig.append_trace(trace2, i+1, 1)
 
@@ -1170,15 +1180,12 @@ def make_high_range_figure(
                State('upload-data', 'last_modified')])
 def update_output(list_of_contents, list_of_names, list_of_dates):
     if list_of_contents is not None:
-        print(list_of_names)
-        print("not none")
         [df_soc, fnamepath] = upload.parse_contents(list_of_names) 
-        print(df_soc)
         return 
 # Main
 if __name__ == "__main__":
 
-    print("Data Types: " , df_soc.dtypes)
-    print("Index Name: ", df_soc.index.name)
+    #print("Data Types: " , df_soc.dtypes)
+    #print("Index Name: ", df_soc.index.name)
     app.run_server(debug=True, threaded=False)
     

@@ -1,0 +1,22 @@
+name: pandas_vis
+channels:
+- defaults
+- anaconda
+- conda-forge
+- plotly
+dependencies:
+- python=3.7
+- pip
+- ipython
+- numpy
+- pandas
+- jupyter
+- matplotlib
+- pyqt
+- qtconsole
+- pandas-profiling
+- plotly
+- scikit-learn
+- ipywidgets
+- pip:
+  - -e .

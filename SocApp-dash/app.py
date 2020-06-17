@@ -157,7 +157,9 @@ cols_with_missing = (col for col in df_soc.columns
 print("columns with NAN after imputing ...", cols_with_missing)
 
 import Imputers as imp
-df_soc = imp.impute_naive(df_soc, numerical_col)
+#df_soc = imp.impute_naive(df_soc, numerical_col)
+df_soc = imp.impute_mean(df_soc, numerical_col)
+
 
 
 import DataCleaning as dc
@@ -798,7 +800,7 @@ def make_low_range_figure(
         trace1 = go.Scattergl(x = dff[get_datetime_col()[0]], y = dff[y_col[i]].rolling(period1).mean(), 
                             name="MA(" + str(period1) + ") " + y_col[i], 
                             mode="lines",#lines+
-                            #fill='tozerox',
+                            #fill=None,
                             #fillcolor=new_col,
                             line=dict(color=new_col, width=2.5),
                             #line=dict(shape="spline", smoothing=2, width=1, color=(list(COLORS.values()))[i]),
@@ -888,7 +890,7 @@ def make_high_range_figure(
                             name="MA(" + str(period1) + ") " + y_col[i], 
                             mode="lines",#lines+
                             #line=dict(shape="spline", smoothing=2, width=1, color=(list(COLORS.values()))[i]),
-                            #fill='tozerox',
+                            #fill=None,
                             #fillcolor=new_col,
                             line=dict(color=new_col, width=2.5),
                             marker=dict(symbol="circle-open"),

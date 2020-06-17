@@ -26,8 +26,8 @@
       <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/.idea/other.xml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DataCleaning.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Imputers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Imputers.py" beforeDir="false" afterPath="$PROJECT_DIR$/Imputers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/controls.py" beforeDir="false" afterPath="$PROJECT_DIR$/controls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pandasvis/.gitignore" beforeDir="false" />
@@ -48,6 +48,7 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
+  <component name="JupyterTrust" id="5d789dac-3dbb-4fff-9ef8-4178f3bfa3a6" />
   <component name="ProjectId" id="1dPDDuM1y0AO76TpwciWAnkqwnq" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
@@ -60,7 +61,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../DAE_impute" />
   </component>
   <component name="RunManager">
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
@@ -96,7 +97,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1592317718771</updated>
-      <workItem from="1592317741814" duration="2001000" />
+      <workItem from="1592317741814" duration="9438000" />
     </task>
     <servers />
   </component>
@@ -113,5 +114,11 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="620" y="265" key="FileChooserDialogImpl" timestamp="1592375848659">
+      <screen x="0" y="0" width="1680" height="1020" />
+    </state>
+    <state x="620" y="265" key="FileChooserDialogImpl/0.0.1680.1020@0.0.1680.1020" timestamp="1592375848659" />
   </component>
 </project>

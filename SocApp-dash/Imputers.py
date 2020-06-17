@@ -13,6 +13,8 @@
 # Imputation
 import pandas as pd
 from sklearn.impute import SimpleImputer
+import impyute as impy
+import numpy as np
 
 def impute_naive(df_soc, numerical_col):
     my_imputer = SimpleImputer()
@@ -23,3 +25,21 @@ def impute_naive(df_soc, numerical_col):
 
         df_soc[e] = imputed
     return df_soc
+
+
+def impute_mean(df_soc, numerical_col):
+
+    my_imputer = SimpleImputer()
+    for e in numerical_col:
+        s_array = df_soc[e].to_numpy()
+
+        has_nan = np.isnan(s_array.reshape(-1, 1))
+        print(has_nan)
+        if(has_nan.any()):
+            imputed = impy.mean(s_array.reshape(-1, 1))
+            print("Imputed: ", e)
+            df_soc[e] = imputed
+
+    return df_soc
+
+#impy.mean(arr)

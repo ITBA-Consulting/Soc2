@@ -152,18 +152,23 @@ def get_options_low_range_dic():
 #Impute Series
 
 
-cols_with_missing = (col for col in df_soc.columns
-                                 if df_soc[col].isnull().any())
-print("columns with NAN after imputing ...", cols_with_missing)
+print("start  cleaning")
+
+import DataCleaning as dc
+df_soc = dc.od(df_soc, numerical_col, 'naive')
+
+print("end of cleaning")
 
 import Imputers as imp
 #df_soc = imp.impute_naive(df_soc, numerical_col)
 df_soc = imp.impute_mean(df_soc, numerical_col)
 
 
+cols_with_missing = (col for col in df_soc.columns
+                                 if df_soc[col].isnull().any())
+print("columns with NAN after imputing ...", cols_with_missing)
 
-import DataCleaning as dc
-df_soc = dc.dc_naive(df_soc, numerical_col)
+
 
 #pp = pdvis()
 
